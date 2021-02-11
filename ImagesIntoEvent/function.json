@@ -2,7 +2,7 @@
   "scriptFile": "__init__.py",
   "bindings": [
     {
-      "name": "videoDetails",
+      "name": "inputDict",
       "type": "activityTrigger",
       "direction": "in"
     }

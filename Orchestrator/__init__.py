@@ -24,10 +24,10 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     ## Get the inputs
     inputs = json.loads(context._input)
     sqlQuery = inputs['sqlQuery']
-
+    logging.info(f"sqlQuery: {sqlQuery}")
     ## Run query to get list of media URLs
     urlList = sqlQuery_to_urlList(sqlQuery)
-
+    logging.info(f"urlList: {len(urlList)} URLs provided")
     ## Split into images and videos
     imageExtensions = (
         '.jpg',
@@ -47,6 +47,14 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
         for x in urlList
         if x.endswith(videoExtensions)
     ]
+
+    ## Create an event using just the images
+    something = yield context.call_activity(
+        'ImagesIntoEvent',
+        {
+            'imageList' : imageList
+        }
+    )
 
     startUTCstr = datetime.strftime(context.current_utc_datetime,
                                         "%Y-%m-%d %H:%M:%S.%f")
