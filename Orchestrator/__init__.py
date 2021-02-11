@@ -28,6 +28,27 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     ## Run query to get list of media URLs
     urlList = sqlQuery_to_urlList(sqlQuery)
     logging.info(f"urlList: {len(urlList)} URLs provided")
+    ## Check the inputs
+    inputCheck = yield context.call_activity(
+        'CheckInputs',
+        {
+            'urlList' : urlList,
+            'sport' : inputs['sport']
+        }
+    ## If `inputCheck` is a list, that means the inputs contain issues
+    ##    so send the request back by return a dict with 'status'
+    ##    as 'error'
+    if isinstance(inputCheck,list):
+        return {
+            'status' : 'error',
+            'errors' : inputCheck
+        }
+    ## Otherwise, `inputCheck` will be a dict, containing an
+    ##    Azure-friendly container name to use
+    containerOutput = inputCheck['sport']
+
+
+    )
     ## Split into images and videos
     imageExtensions = (
         '.jpg',
@@ -52,7 +73,8 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     something = yield context.call_activity(
         'ImagesIntoEvent',
         {
-            'imageList' : imageList
+            'imageList' : imageList,
+            'containerOutput' : containerOutput
         }
     )
 

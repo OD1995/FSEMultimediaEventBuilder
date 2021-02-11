@@ -29,4 +29,4 @@ async def main(
 		client_input=options
 	)
 
-    return func.HttpResponse("It is done?")
+    return client.create_check_status_response(req, instance_id)
