@@ -18,13 +18,24 @@ import azure.durable_functions as df
 
 
 
+## Overall Structure
+
+## 1 - Run query, get list of media URLs
+## 2 - Split into images and videos
+## 3 - Create event and move images into it
+## 4 - Add rows to AzureBlobVideos SQL table, add videos to us-office
+## 5 - Run through Custom Vision model (if details provided) - NOT YET BUILT
+
+
+
 def orchestrator_function(context: df.DurableOrchestrationContext):
     logging.info("Orchestrator started")
 
     ## Get the inputs
     inputs = json.loads(context._input)
     logging.info(f"inputs: {inputs}")
-    containerOutput = inputs['sport']
+    sport = inputs['sport']
+    event = inputs['event']
 
     ## Run query, get list of media URLs
     urlList = sqlQuery_to_urlList(inputs['sqlQuery'])
@@ -54,7 +65,8 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
         'ImagesIntoEvent',
         {
             'imageList' : imageList,
-            'containerOutput' : containerOutput
+            'sport' : sport,
+            'event' : event
         }
     )
     logging.info(f"ImagesIntoEventActivityResult: {ImagesIntoEventActivityResult}")
@@ -64,34 +76,15 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
         'VideosIntoEvent',
         {
             'videoList' : videoList,
-            'containerOutput' : containerOutput
+            'sport' : sport,
+            'event' : event
         }
     )
     logging.info(f"VideosIntoEventActivityResult: {VideosIntoEventActivityResult}")
 
-
-    # startUTCstr = datetime.strftime(context.current_utc_datetime,
-    #                                     "%Y-%m-%d %H:%M:%S.%f")
-
-    ## Use composite object if needed
-    ##    - https://docs.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-orchestrations?tabs=python#passing-multiple-parameters
-    ## Call activity
-    # listOfFrameNumbers = yield context.call_activity(
-    #                                 name='ReturnFrameNumbers',
-    #                                 input_=videoDetails)
-
-
-
-    ## Overall Structure
-
-    ## 1 - Run query, get list of media URLs
-    ## 2 - Split into images and videos
-    ## 3 - Create event and move images into it
-    ## 4 - Add rows to AzureBlobVideos SQL table, add videos to us-office
-    ## 5 - Run through Custom Vision model (if details provided)
     
 
 
-    return "this is a string"
+    return "done"
 
 main = df.Orchestrator.create(orchestrator_function)

@@ -104,3 +104,11 @@ def check_container_name(
         return  _sport_
     else:
         return False
+
+def run_sql_command(sqlQuery):
+    ## Create connection string
+    connectionString = get_connection_string()
+    ## Run query
+    with pyodbc.connect(connectionString) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(sqlQuery)
