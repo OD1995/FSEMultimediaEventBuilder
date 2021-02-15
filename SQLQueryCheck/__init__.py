@@ -1,27 +1,22 @@
 import logging
 import azure.functions as func
 import azure.durable_functions as df
-from MyFunctions import sqlQuery_to_urlList
-
+from MyFunctions import get_df_from_sqlQuery
+import json
 
 async def main(
 	req: func.HttpRequest,
     starter: str
 ):
     
-    client = df.DurableOrchestrationClient(starter)
     ## Get SQL query from HTTP request
     sqlQuery = req.params.get("sqlQuery")
-
+    ## Run query
+    df = get_df_from_sqlQuery(sqlQuery)
     ## Ensure `sqlQuery` container "DownloadedMedia_AzureStorageURL"
-    rightColumnName = "DownloadedMedia_AzureStorageURL" in sqlQuery
-    if rightColumnName:
-        ## Run query to get list of media URLs
-        urlList = sqlQuery_to_urlList(inputDict['sqlQuery'])
-        ## Ensure SQL query returns some rows
-        someSQLrows = len(inputDict['urlList']) > 0
-    else:
-        someSQLrows = True
+    rightColumnName = "DownloadedMedia_AzureStorageURL" in df.columns
+    ## Ensure SQL query returns some rows
+    someSQLrows = len(df) > 0
 
     ## If any are those are not true, return list of errors
     allChecks = [
@@ -45,5 +40,5 @@ async def main(
     }
     
     return func.HttpResponse(
-        body=dictResponse
+        body=json.dumps(dictResponse)
     )

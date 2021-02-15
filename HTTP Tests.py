@@ -1,4 +1,5 @@
 import requests
+from datetime import datetime
 
 badQuery1 = """
 select top 100 * from MultimediaTest
@@ -15,27 +16,27 @@ goodSport = "football"
 
 eventName = "test"
 
-httpEndpoint = "https://fsemultimediaeventbuilder.azurewebsites.net/api/HttpTrigger"
+httpEndpoint1 = "https://fsemultimediaeventbuilder.azurewebsites.net/api/SQLQueryCheck"
+httpEndpoint2 = "https://fsemultimediaeventbuilder.azurewebsites.net/api/EventBuilderTrigger"
 
 ## Make initial request
 r = requests.post(
-    httpEndpoint,
+    httpEndpoint1,
     params={
-        'sqlQuery' : badQuery1,
-        'sport' : goodSport,
-        'eventName' : eventName,
+        'sqlQuery' : badQuery2
     }
 )
-print("first request done")
-#print(r)
-#print(r.json())
-rURL = r.json()['statusQueryGetUri']
-print(rURL)
-## Make second request
-r2 = requests.get(rURL)
-print(r2)
-print(r2.json())
-r2js = r2.json()
+print(datetime.now())
+#print("first request done")
+print(r)
+print(r.json())
+#rURL = r.json()['statusQueryGetUri']
+#print(rURL)
+### Make second request
+#r2 = requests.get(rURL)
+#print(r2)
+#print(r2.json())
+#r2js = r2.json()
 
 
 

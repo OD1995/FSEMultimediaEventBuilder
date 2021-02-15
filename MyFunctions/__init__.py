@@ -10,6 +10,13 @@ def sqlQuery_to_urlList(
     sqlQuery
 ):
     logging.info("sqlQuery_to_urlList started")
+    df = get_df_from_sqlQuery(sqlQuery)
+    ## Get column of interest as a list
+    urlList = df['DownloadedMedia_AzureStorageURL'].to_list()
+
+    return urlList
+
+def get_df_from_sqlQuery(sqlQuery):
     ## Create connection string
     connectionString = get_connection_string()
     logging.info(f'Connection string created: {connectionString}')
@@ -18,10 +25,7 @@ def sqlQuery_to_urlList(
         ## Get SQL table in pandas DataFrame
         df = pd.read_sql(sql=sqlQuery,
                             con=conn)
-    ## Get column of interest as a list
-    urlList = df['DownloadedMedia_AzureStorageURL'].to_list()
-
-    return urlList
+    return df
 
 
 def get_connection_string():
