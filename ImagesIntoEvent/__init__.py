@@ -7,29 +7,12 @@
 # - run pip install -r requirements.txt
 
 import logging
-# from collections import namedtuple
-# import cv2
-# import math
-# from datetime import datetime
-# import json
-# import tempfile
-from azure.storage.blob import BlockBlobService
-# import sys
+from azure.storage.blob import BlockBlobService, PublicAccess
 import os
-# sys.path.append(os.path.abspath('.'))
-# import MyClasses
 from MyFunctions import (
     get_url_container_and_file_name,
     get_SAS_URL
 )
-# import pytz
-
-# vidDets = namedtuple('VideoDetails',
-#                         ['blobDetails',
-#                          'timeToCutUTC',
-#                          'frameNumberList',
-#                          'sport',
-#                          'event'])
 
 
 def main(inputDict: dict) -> str:
@@ -38,13 +21,22 @@ def main(inputDict: dict) -> str:
     imageList = inputDict['imageList']
     sport = inputDict['sport']
     event = inputDict['event']
+    logging.info(f"imageList len: {len(imageList)}")
+    logging.info(f"sport: {sport}")
+    logging.info(f"event: {event}")
     ## Create block blob services
     sourceBBS = BlockBlobService(
         connection_string=os.getenv("socialscrapingCS"))
+    logging.info("source BBS created")
     destinationBBS = BlockBlobService(
         connection_string=os.getenv("fsecustomvisionimagesCS"))
+    logging.info("dest BBS created")
     ## Ensure `sport` container exists
-
+    destinationBBS.create_container(
+            container_name=sport,
+            public_access=PublicAccess.Blob,
+            fail_on_exist=False)
+    logging.info("new container created (if doesn't already exist)")
     ## Loop through list of images
     for imageURL in imageList:
         urlContainer,urlFileName = get_url_container_and_file_name(imageURL)

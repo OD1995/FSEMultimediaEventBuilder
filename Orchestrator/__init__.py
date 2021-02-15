@@ -23,32 +23,12 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
 
     ## Get the inputs
     inputs = json.loads(context._input)
-    sqlQuery = inputs['sqlQuery']
-    logging.info(f"sqlQuery: {sqlQuery}")
-    ## Run query to get list of media URLs
-    urlList = sqlQuery_to_urlList(sqlQuery)
-    logging.info(f"urlList: {len(urlList)} URLs provided")
-    ## Check the inputs
-    inputCheck = yield context.call_activity(
-        'CheckInputs',
-        {
-            'urlList' : urlList,
-            'sport' : inputs['sport']
-        }
-    ## If `inputCheck` is a list, that means the inputs contain issues
-    ##    so send the request back by return a dict with 'status'
-    ##    as 'error'
-    if isinstance(inputCheck,list):
-        return {
-            'status' : 'error',
-            'errors' : inputCheck
-        }
-    ## Otherwise, `inputCheck` will be a dict, containing an
-    ##    Azure-friendly container name to use
-    containerOutput = inputCheck['sport']
+    logging.info(f"inputs: {inputs}")
+    containerOutput = inputs['sport']
 
+    ## Run query, get list of media URLs
+    urlList = sqlQuery_to_urlList(inputs['sqlQuery'])
 
-    )
     ## Split into images and videos
     imageExtensions = (
         '.jpg',
@@ -69,24 +49,36 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
         if x.endswith(videoExtensions)
     ]
 
-    ## Create an event using just the images
-    something = yield context.call_activity(
+    ## Create event and move images into it
+    ImagesIntoEventActivityResult = yield context.call_activity(
         'ImagesIntoEvent',
         {
             'imageList' : imageList,
             'containerOutput' : containerOutput
         }
     )
+    logging.info(f"ImagesIntoEventActivityResult: {ImagesIntoEventActivityResult}")
 
-    startUTCstr = datetime.strftime(context.current_utc_datetime,
-                                        "%Y-%m-%d %H:%M:%S.%f")
+    ## Add rows to AzureBlobVideos SQL table, add videos to us-office
+    VideosIntoEventActivityResult = yield context.call_activity(
+        'VideosIntoEvent',
+        {
+            'videoList' : videoList,
+            'containerOutput' : containerOutput
+        }
+    )
+    logging.info(f"VideosIntoEventActivityResult: {VideosIntoEventActivityResult}")
+
+
+    # startUTCstr = datetime.strftime(context.current_utc_datetime,
+    #                                     "%Y-%m-%d %H:%M:%S.%f")
 
     ## Use composite object if needed
     ##    - https://docs.microsoft.com/en-us/azure/azure-functions/durable/durable-functions-orchestrations?tabs=python#passing-multiple-parameters
     ## Call activity
-    listOfFrameNumbers = yield context.call_activity(
-                                    name='ReturnFrameNumbers',
-                                    input_=videoDetails)
+    # listOfFrameNumbers = yield context.call_activity(
+    #                                 name='ReturnFrameNumbers',
+    #                                 input_=videoDetails)
 
 
 

@@ -19,7 +19,7 @@ def sqlQuery_to_urlList(
         df = pd.read_sql(sql=sqlQuery,
                             con=conn)
     ## Get column of interest as a list
-    urlList = df['FileUrl'].to_list()
+    urlList = df['DownloadedMedia_AzureStorageURL'].to_list()
 
     return urlList
 

@@ -8,24 +8,35 @@
 
 import logging
 from MyFunctions import (
-    check_container_name
+    check_container_name,
+    sqlQuery_to_urlList
 )
 
 
 def main(inputDict: dict) -> str:
-
-    ## Ensure SQL query returns some rows
-    someSQLrows = len(inputDict['urlList']) > 0
+    ## Ensure `sqlQuery` container "DownloadedMedia_AzureStorageURL"
+    rightColumnName = "DownloadedMedia_AzureStorageURL" in inputDict['sqlQuery']
+    if rightColumnName:
+        ## Run query to get list of media URLs
+        urlList = sqlQuery_to_urlList(inputDict['sqlQuery'])
+        ## Ensure SQL query returns some rows
+        someSQLrows = len(inputDict['urlList']) > 0
+    else:
+        someSQLrows = True
     ## Ensure sport can be used as a container
     _sport_ = check_container_name(inputDict['sport'])
 
     ## If any are those are not true, return list of errors
     allChecks = [
+        rightColumnName,
         someSQLrows,
         _sport_
     ]
     if False in allChecks:
         listOfErrors = []
+        if not rightColumnName:
+            textToAdd0 = "The SQL query provided does not contain `DownloadedMedia_AzureStorageURL` in the SELECT statement, please add and re-submit"
+            listOfErrors.append(textToAdd0)
         if not someSQLrows:
             textToAdd1 = "The SQL query provided returned 0 rows, please check it again and re-submit."
             listOfErrors.append(textToAdd1)
@@ -38,7 +49,8 @@ def main(inputDict: dict) -> str:
     
     ## Otherwise, return the container name to use
     return {
-        "sport" : _sport_
+        "sport" : _sport_,
+        'urlList' : urlList
     }
 
 
