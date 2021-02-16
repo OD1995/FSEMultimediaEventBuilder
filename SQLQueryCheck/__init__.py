@@ -10,7 +10,9 @@ async def main(
 ):
     
     ## Get SQL query from HTTP request
-    sqlQuery = req.params.get("sqlQuery")
+    sqlQuery = req.params.get("query")
+    # sqlQuery = req.form["query"]
+    logging.info(f"sqlQuery: {sqlQuery}")
     ## Run query
     df = get_df_from_sqlQuery(sqlQuery)
     ## Ensure `sqlQuery` container "DownloadedMedia_AzureStorageURL"

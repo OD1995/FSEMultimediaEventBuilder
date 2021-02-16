@@ -11,10 +11,12 @@ goodQuery = """
 select top 100 * from MultimediaTest
 where [filename] like '%p%'"""
 
-badSport = "&!thisshouldfail!&"
-goodSport = "football"
+Q = "select * from MultimediaTest where [filename] like '%a%1dad%'"
 
-eventName = "test"
+badSport = "&!thisshouldfail!&"
+goodSport = "test"
+
+goodEvent = "16Feb21 Test 2"
 
 httpEndpoint1 = "https://fsemultimediaeventbuilder.azurewebsites.net/api/SQLQueryCheck"
 httpEndpoint2 = "https://fsemultimediaeventbuilder.azurewebsites.net/api/EventBuilderTrigger"
@@ -23,19 +25,28 @@ httpEndpoint2 = "https://fsemultimediaeventbuilder.azurewebsites.net/api/EventBu
 r = requests.post(
     httpEndpoint1,
     params={
-        'sqlQuery' : badQuery2
+        'query' : Q
     }
 )
 print(datetime.now())
-#print("first request done")
 print(r)
 print(r.json())
-#rURL = r.json()['statusQueryGetUri']
-#print(rURL)
+assert r.json()['success']
+print("first request done")
+print(datetime.now())
 ### Make second request
-#r2 = requests.get(rURL)
-#print(r2)
-#print(r2.json())
+r2 = requests.post(
+    httpEndpoint2,
+    params={
+        'query' : Q,
+        'sport' : goodSport,
+        'event' : goodEvent
+    }      
+)
+print(r2)
+print(r2.json())
+print(datetime.now())
+print("second request done")
 #r2js = r2.json()
 
 

@@ -11,15 +11,20 @@ async def main(
     client = df.DurableOrchestrationClient(starter)
 
     options = {}
-    for f in [  
-                'sqlQuery',
-                'sport',
-                'eventName',
-                'endpointURL',
-                'iteration'
-                ]:
-        if req.params.get(f):
-            options[f] = req.params.get(f)
+    necessary = [
+        'query',
+        'sport',
+        'event'
+    ]
+    bonus = [
+        # 'endpointURL',
+        # 'iteration'
+    ]
+    for f in necessary + bonus:
+        _val_ =  req.params.get(f)
+        options[f] = _val_
+        if (f in necessary) & (_val_ is None):
+            raise ValueError(f"`{f}` is required, but not provided")
 
     logging.info("starter----------------> %s",options)
 

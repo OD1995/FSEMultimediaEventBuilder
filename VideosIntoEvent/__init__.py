@@ -47,7 +47,7 @@ def main(inputDict: dict) -> str:
             f"'{event}'",
             f"'{sport}'",
             "NULL",
-            "TRUE"
+            "1" # equivalent of True
         ])
         for vidURL in videoList
     ]
@@ -75,6 +75,7 @@ def main(inputDict: dict) -> str:
     logging.info("dest BBS created")
 
     ## Loop through list of videos
+    logging.info("start loading videos into `us-office` container")
     for vidURL in videoList:
         urlContainer,urlFileName = get_url_container_and_file_name(vidURL)
         ## Create SAS URL

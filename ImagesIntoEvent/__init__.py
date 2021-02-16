@@ -38,6 +38,7 @@ def main(inputDict: dict) -> str:
             fail_on_exist=False)
     logging.info("new container created (if doesn't already exist)")
     ## Loop through list of images
+    logging.info(f"start loading images into `{event}` folder of `{sport}` container")
     for imageURL in imageList:
         urlContainer,urlFileName = get_url_container_and_file_name(imageURL)
         ## Create SAS URL

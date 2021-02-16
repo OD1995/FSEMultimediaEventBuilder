@@ -109,6 +109,76 @@ def check_container_name(
     else:
         return False
 
+
+def insert_EventBuilderProgress(
+    uuid,
+    utcNowStr,
+    sport,
+    event,
+    ebs_stages
+):
+    Q = f"""
+    INSERT INTO EventBuilderProgress
+        (
+            [EventBuildID]
+            ,[StartUTC]
+            ,[EndUTC]
+            ,[LastUpdateUTC]
+            ,[Sport]
+            ,[Event]
+            ,[Stage]
+        )
+    VALUES
+        (
+            '{uuid}'
+            ,'{utcNowStr}'
+            ,'NULL'
+            ,'{utcNowStr}'
+            ,'{sport}'
+            ,'{event}'
+            ,'1/{ebs_stages} - Progress row created'
+        )
+    """
+
+    run_sql_command(Q)
+
+## Progress stages for EventBuilderProgress
+ebs_stages = 4
+# 1 - Progress row created
+# 2 - Images inserted into event
+# 3 - Videos inserted into event
+# 4 - Finished
+
+
+def update_EventBuilderProgress(
+    uuid,
+    utcNowStr,
+    ebs_stages,
+    stage_count,
+    stage=None,
+    done=False
+):
+    ## If done == True, update the EndUTC column
+    if done:
+        stageProg = f"{stage_count}/{ebs_stages} - {stage}"
+        Q = f"""
+        UPDATE      EventBuilderProgress
+        SET         [LastUpdateUTC] = '{utcNowStr}'
+                    ,[Stage] = '{stageProg}'
+        WHERE       [EventBuildID] = '{uuid}'
+        """
+    ## Otherwise, just update the 
+    else:
+        Q = f"""
+        UPDATE      EventBuilderProgress
+        SET         [EndUTC] = '{utcNowStr}'
+                    ,[LastUpdateUTC] = '{utcNowStr}'
+                    ,[Stage] = '5/5 - Finished'
+        WHERE       [EventBuildID] = '{uuid}'
+        """
+
+    run_sql_command(Q)
+
 def run_sql_command(sqlQuery):
     ## Create connection string
     connectionString = get_connection_string()
