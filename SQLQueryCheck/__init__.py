@@ -1,7 +1,10 @@
 import logging
 import azure.functions as func
 import azure.durable_functions as df
-from MyFunctions import get_df_from_sqlQuery
+from MyFunctions import (
+    get_df_from_sqlQuery,
+    DB
+)
 import json
 
 async def main(
@@ -14,7 +17,10 @@ async def main(
     # sqlQuery = req.form["query"]
     logging.info(f"sqlQuery: {sqlQuery}")
     ## Run query
-    df = get_df_from_sqlQuery(sqlQuery)
+    df = get_df_from_sqlQuery(
+        sqlQuery=sqlQuery,
+        database=DB
+    )
     ## Ensure `sqlQuery` container "DownloadedMedia_AzureStorageURL"
     rightColumnName = "DownloadedMedia_AzureStorageURL" in df.columns
     ## Ensure SQL query returns some rows

@@ -11,12 +11,12 @@ goodQuery = """
 select top 100 * from MultimediaTest
 where [filename] like '%p%'"""
 
-Q = "select * from MultimediaTest where [filename] like '%a%1dad%'"
+Q = "select * from MultimediaTest where [filename] like '2%b%d%aa%f%0.%'"
 
 badSport = "&!thisshouldfail!&"
-goodSport = "test"
+goodSport = "testing"
 
-goodEvent = "16Feb21 Test 2"
+goodEvent = "17Feb21 Test 7"
 
 httpEndpoint1 = "https://fsemultimediaeventbuilder.azurewebsites.net/api/SQLQueryCheck"
 httpEndpoint2 = "https://fsemultimediaeventbuilder.azurewebsites.net/api/EventBuilderTrigger"
@@ -44,15 +44,19 @@ r2 = requests.post(
     }      
 )
 print(r2)
-print(r2.json())
+#print(r2.json())
 print(datetime.now())
 print("second request done")
 #r2js = r2.json()
 
 
-
-
-
+### TERMINATE INSTANCES
+#partitionKey = "bf00edb001f247c6b0acb03c02e6be55"
+#text = "JPEGer failed"
+##
+#terminateURL = f'https://fsemultimediaeventbuilder.azurewebsites.net/runtime/webhooks/durabletask/instances/{partitionKey}/terminate?reason={text}&taskHub=FSEMultimediaEventBuilder&connection=Storage&code=O3rTrA8H3NRuzKSGQSTdoTxMQvMb9seOv/vJmZkamAHaNvajPjuLqw=='
+#print(datetime.now())
+#od1 = requests.post(terminateURL)
 
 
 

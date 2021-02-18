@@ -14,7 +14,8 @@ from MyFunctions import (
     sqlQuery_to_urlList,
     insert_EventBuilderProgress,
     update_EventBuilderProgress,
-    ebs_stages
+    ebs_stages,
+    DB
 )
 import azure.functions as func
 import azure.durable_functions as df
@@ -44,19 +45,22 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     _uuid_ = str(context.new_uuid())
     logging.info(f"_uuid_: {_uuid_}")
     stage_count = 1
-    insert_EventBuilderProgress(
-        uuid=_uuid_,
-        utcNowStr=datetime.strftime(
-            context.current_utc_datetime,
-            "%Y-%m-%d %H:%M:%S.%f"
-            ),
-        sport=sport,
-        event=event,
-        ebs_stages=ebs_stages
-    )
+    AddRowToSQLResult = yield context.call_activity(
+            'AddRowToSQL',
+            {
+                'sport' : sport,
+                'event' : event,
+                'ebs_stages' : ebs_stages,
+                'uuid' : _uuid_
+            }
+        )
+    logging.info(f"AddRowToSQLResult: {AddRowToSQLResult}")
 
     ## Run query, get list of media URLs
-    urlList = sqlQuery_to_urlList(inputs['query'])
+    urlList = sqlQuery_to_urlList(
+        sqlQuery=inputs['query'],
+        database=DB
+    )
 
     ## Split into images and videos
     imageExtensions = (
@@ -69,6 +73,7 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
         for x in urlList
         if x.endswith(imageExtensions)
     ]
+    logging.info(f"{len(imageList)} images in the query")
     videoExtensions = (
         '.mp4'
     )
@@ -77,66 +82,68 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
         for x in urlList
         if x.endswith(videoExtensions)
     ]
+    logging.info(f"{len(videoList)} videos in the query")
 
     ## Create event and move images into it
+    stage_count += 1
     if len(imageList) > 0:
         ImagesIntoEventActivityResult = yield context.call_activity(
             'ImagesIntoEvent',
             {
                 'imageList' : imageList,
                 'sport' : sport,
-                'event' : event
+                'event' : event,
+                'ebs_stages' : ebs_stages,
+                'stage_count' : stage_count,
+                'uuid' : _uuid_
             }
         )
         logging.info(f"ImagesIntoEventActivityResult: {ImagesIntoEventActivityResult}")
     
-    stage_count += 1
-    update_EventBuilderProgress(
-        uuid=_uuid_,
-        utcNowStr=datetime.strftime(
-        context.current_utc_datetime,
-        "%Y-%m-%d %H:%M:%S.%f"
-        ),
-        stage="Images inserted into event",
-        ebs_stages=ebs_stages,
-        stage_count=stage_count
-    )
+
 
     ## Add rows to AzureBlobVideos SQL table, add videos to us-office
+    stage_count += 1
     if len(videoList) > 0:
         VideosIntoEventActivityResult = yield context.call_activity(
             'VideosIntoEvent',
             {
                 'videoList' : videoList,
                 'sport' : sport,
-                'event' : event
+                'event' : event,
+                'ebs_stages' : ebs_stages,
+                'stage_count' : stage_count,
+                'uuid' : _uuid_
             }
         )
         logging.info(f"VideosIntoEventActivityResult: {VideosIntoEventActivityResult}")
-    
+
+    ## Monitor the AzureBlobVideoCompletes table to see when all submitted videos are JPEGed
     stage_count += 1
-    update_EventBuilderProgress(
-        uuid=_uuid_,
-        utcNowStr=datetime.strftime(
-        context.current_utc_datetime,
-        "%Y-%m-%d %H:%M:%S.%f"
-        ),
-        stage="Videos inserted into event",
-        ebs_stages=ebs_stages,
-        stage_count=stage_count
+    DetectVideoFinishResult = yield context.call_activity(
+        'DetectVideoFinish',
+        {
+            'videoList' : videoList,
+            'sport' : sport,
+            'event' : event,
+            'ebs_stages' : ebs_stages,
+            'stage_count' : stage_count,
+            'uuid' : _uuid_
+        }
     )
+    logging.info(f"DetectVideoFinishResult: {DetectVideoFinishResult}")
+    
 
     update_EventBuilderProgress(
         uuid=_uuid_,
         utcNowStr=datetime.strftime(
         context.current_utc_datetime,
-        "%Y-%m-%d %H:%M:%S.%f"
+        "%Y-%m-%dT%H:%M:%S"
         ),
         done=True,
         stage_count=stage_count,
         ebs_stages=ebs_stages
     )
-
     
 
 

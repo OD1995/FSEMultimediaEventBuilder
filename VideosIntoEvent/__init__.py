@@ -9,16 +9,18 @@
 import logging
 from azure.storage.blob import BlockBlobService, PublicAccess
 import os
+from datetime import datetime
 from MyFunctions import (
     get_file_name_from_URL,
     run_sql_command,
     get_url_container_and_file_name,
-    get_SAS_URL
+    get_SAS_URL,
+    update_EventBuilderProgress
 )
 
 
 def main(inputDict: dict) -> str:
-    logging.info("ImagesIntoEvent started")
+    logging.info("VideosIntoEvent started")
     ## Get image list
     videoList = inputDict['videoList']
     sport = inputDict['sport']
@@ -59,7 +61,10 @@ def main(inputDict: dict) -> str:
     """
     logging.info(f"AzureBlobVideos query: {insertQuery}")
     ## Run query
-    run_sql_command(insertQuery)
+    run_sql_command(
+        sqlQuery=insertQuery,
+        database="AzureCognitive"
+    )
     logging.info("query run")
 
     
@@ -90,4 +95,17 @@ def main(inputDict: dict) -> str:
             blob_name=urlFileName,
             copy_source=sasURL
         )
+
+    ## Update row in SQL
+    update_EventBuilderProgress(
+        uuid=inputDict['uuid'],
+        utcNowStr=datetime.strftime(
+            datetime.utcnow(),
+            "%Y-%m-%dT%H:%M:%S"
+        ),
+        stage="Videos inserted into AzureBlobVideos",
+        ebs_stages=inputDict['ebs_stages'],
+        stage_count=inputDict['stage_count']
+    )
+
     return "done"

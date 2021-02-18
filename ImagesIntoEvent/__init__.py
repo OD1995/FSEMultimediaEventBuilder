@@ -11,8 +11,10 @@ from azure.storage.blob import BlockBlobService, PublicAccess
 import os
 from MyFunctions import (
     get_url_container_and_file_name,
-    get_SAS_URL
+    get_SAS_URL,
+    update_EventBuilderProgress
 )
+from datetime import datetime
 
 
 def main(inputDict: dict) -> str:
@@ -53,4 +55,16 @@ def main(inputDict: dict) -> str:
             blob_name=f"{event}/{urlFileName}",
             copy_source=sasURL
         )
+
+    ## Update row in SQL
+    update_EventBuilderProgress(
+        uuid=inputDict['uuid'],
+        utcNowStr=datetime.strftime(
+            datetime.utcnow(),
+            "%Y-%m-%dT%H:%M:%S"
+        ),
+        stage="Images inserted into event",
+        ebs_stages=inputDict['ebs_stages'],
+        stage_count=inputDict['stage_count']
+    )
     return "done"

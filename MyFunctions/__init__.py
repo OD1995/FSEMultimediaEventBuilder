@@ -6,19 +6,31 @@ from azure.storage.blob import ContainerPermissions
 from datetime import datetime, timedelta
 import re
 
+## Database to query from, will be GlobalMultimedia eventually
+##    but for testing it is AzureCognitive
+DB = "GlobalMultimedia"
+# DB = "AzureCognitive"
+
 def sqlQuery_to_urlList(
-    sqlQuery
+    sqlQuery,
+    database
 ):
     logging.info("sqlQuery_to_urlList started")
-    df = get_df_from_sqlQuery(sqlQuery)
+    df = get_df_from_sqlQuery(
+        sqlQuery,
+        database
+    )
     ## Get column of interest as a list
     urlList = df['DownloadedMedia_AzureStorageURL'].to_list()
 
     return urlList
 
-def get_df_from_sqlQuery(sqlQuery):
+def get_df_from_sqlQuery(
+    sqlQuery,
+    database
+):
     ## Create connection string
-    connectionString = get_connection_string()
+    connectionString = get_connection_string(database)
     logging.info(f'Connection string created: {connectionString}')
     ## Execute SQL query and get results into df 
     with pyodbc.connect(connectionString) as conn:
@@ -28,13 +40,13 @@ def get_df_from_sqlQuery(sqlQuery):
     return df
 
 
-def get_connection_string():
+def get_connection_string(database):
     username = 'matt.shepherd'
     password = "4rsenal!PG01"
     driver = '{ODBC Driver 17 for SQL Server}'
     # driver = 'SQL Server Native Client 11.0'
     server = "fse-inf-live-uk.database.windows.net"
-    database = 'AzureCognitive'
+    # database = 'AzureCognitive'
     ## Create connection string
     connectionString = f'DRIVER={driver};SERVER={server};PORT=1433;DATABASE={database};UID={username};PWD={password}'
     
@@ -46,18 +58,6 @@ def get_container_from_URL(fileURL):
 def get_file_name_from_URL(fileURL):
     return "/".join(fileURL.split("/")[4:])
 
-# def get_SAS_URL_using_container(
-#     fileURL,
-#     block_blob_service
-# ):
-#     ## Get container
-#     container = get_container_from_URL(fileURL)
-#     ## Get SAS URL
-#     sasURL = get_SAS_URL(
-#                 fileURL=fileURL,
-#                 block_blob_service=block_blob_service,
-#                 container=container)
-#     return sasURL
 
 def get_url_container_and_file_name(fileURL):
     return get_container_from_URL(fileURL),get_file_name_from_URL(fileURL)
@@ -132,22 +132,26 @@ def insert_EventBuilderProgress(
         (
             '{uuid}'
             ,'{utcNowStr}'
-            ,'NULL'
+            ,NULL
             ,'{utcNowStr}'
             ,'{sport}'
             ,'{event}'
             ,'1/{ebs_stages} - Progress row created'
         )
     """
-
-    run_sql_command(Q)
+    logging.info(Q)
+    run_sql_command(
+        sqlQuery=Q,
+        database="AzureCognitive"
+    )
 
 ## Progress stages for EventBuilderProgress
-ebs_stages = 4
+ebs_stages = 5
 # 1 - Progress row created
 # 2 - Images inserted into event
-# 3 - Videos inserted into event
-# 4 - Finished
+# 3 - Videos inserted into AzureBlobVideos
+# 4 - Videos inserted into event
+# 5 - Finished
 
 
 def update_EventBuilderProgress(
@@ -159,16 +163,7 @@ def update_EventBuilderProgress(
     done=False
 ):
     ## If done == True, update the EndUTC column
-    if done:
-        stageProg = f"{stage_count}/{ebs_stages} - {stage}"
-        Q = f"""
-        UPDATE      EventBuilderProgress
-        SET         [LastUpdateUTC] = '{utcNowStr}'
-                    ,[Stage] = '{stageProg}'
-        WHERE       [EventBuildID] = '{uuid}'
-        """
-    ## Otherwise, just update the 
-    else:
+    if done:        
         Q = f"""
         UPDATE      EventBuilderProgress
         SET         [EndUTC] = '{utcNowStr}'
@@ -176,12 +171,31 @@ def update_EventBuilderProgress(
                     ,[Stage] = '5/5 - Finished'
         WHERE       [EventBuildID] = '{uuid}'
         """
+    ## Otherwise, just update the 
+    else:
+        if stage_count:
+            stageProg = f"{stage_count}/{ebs_stages} - {stage}"
+        else:
+            stageProg = stage
+        Q = f"""
+        UPDATE      EventBuilderProgress
+        SET         [LastUpdateUTC] = '{utcNowStr}'
+                    ,[Stage] = '{stageProg}'
+        WHERE       [EventBuildID] = '{uuid}'
+        """
 
-    run_sql_command(Q)
+    logging.info(Q)
+    run_sql_command(
+        sqlQuery=Q,
+        database="AzureCognitive"
+    )
 
-def run_sql_command(sqlQuery):
+def run_sql_command(
+    sqlQuery,
+    database
+):
     ## Create connection string
-    connectionString = get_connection_string()
+    connectionString = get_connection_string(database)
     ## Run query
     with pyodbc.connect(connectionString) as conn:
         with conn.cursor() as cursor:
