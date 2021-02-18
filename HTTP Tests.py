@@ -50,15 +50,13 @@ print("second request done")
 #r2js = r2.json()
 
 
-### TERMINATE INSTANCES
-#partitionKey = "bf00edb001f247c6b0acb03c02e6be55"
-#text = "JPEGer failed"
-##
-#terminateURL = f'https://fsemultimediaeventbuilder.azurewebsites.net/runtime/webhooks/durabletask/instances/{partitionKey}/terminate?reason={text}&taskHub=FSEMultimediaEventBuilder&connection=Storage&code=O3rTrA8H3NRuzKSGQSTdoTxMQvMb9seOv/vJmZkamAHaNvajPjuLqw=='
-#print(datetime.now())
-#od1 = requests.post(terminateURL)
-
-
+## TERMINATE INSTANCES
+partitionKey = "99ddfa83c4d9498fb451a7ef408e574d"
+text = "going to change sampling proportion"
+#
+terminateURL = f'https://fsemultimediaeventbuilder.azurewebsites.net/runtime/webhooks/durabletask/instances/{partitionKey}/terminate?reason={text}&taskHub=FSEMultimediaEventBuilder&connection=Storage&code=O3rTrA8H3NRuzKSGQSTdoTxMQvMb9seOv/vJmZkamAHaNvajPjuLqw=='
+print(datetime.now())
+od1 = requests.post(terminateURL)
 
 
 

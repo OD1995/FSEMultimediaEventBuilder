@@ -25,6 +25,7 @@ def main(inputDict: dict) -> str:
     videoList = inputDict['videoList']
     sport = inputDict['sport']
     event = inputDict['event']
+    samplingProportion = inputDict['samplingProportion']
     logging.info(f"videoList len: {len(videoList)}")
     logging.info(f"sport: {sport}")
     logging.info(f"event: {event}")
@@ -36,7 +37,8 @@ def main(inputDict: dict) -> str:
         'Event',
         'Sport',
         'EndpointID',
-        'MultipleVideoEvent'
+        'MultipleVideoEvent',
+        'SamplingProportion'
     ]
     columnListString = ",".join([
         f"[{c}]"
@@ -49,7 +51,8 @@ def main(inputDict: dict) -> str:
             f"'{event}'",
             f"'{sport}'",
             "NULL",
-            "1" # equivalent of True
+            "1", # equivalent of True
+            str(samplingProportion)
         ])
         for vidURL in videoList
     ]
@@ -68,9 +71,7 @@ def main(inputDict: dict) -> str:
     logging.info("query run")
 
     
-    ## Upload videos to us-office
-
-
+    ## # Upload videos to us-office
     ## Create block blob services
     sourceBBS = BlockBlobService(
         connection_string=os.getenv("socialscrapingCS"))

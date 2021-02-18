@@ -14,7 +14,8 @@ async def main(
     necessary = [
         'query',
         'sport',
-        'event'
+        'event',
+        'sampling_proportion'
     ]
     bonus = [
         # 'endpointURL',
