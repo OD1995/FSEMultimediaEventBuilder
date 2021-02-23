@@ -15,12 +15,12 @@ async def main(
         'query',
         'sport',
         'event',
-        'sampling_proportion',
-        'audio_transcript'
+        'sampling_proportion'
     ]
     bonus = [
         # 'endpointURL',
-        # 'iteration'
+        # 'iteration',
+        'audio_transcript'
     ]
     for f in necessary + bonus:
         _val_ =  req.params.get(f)
