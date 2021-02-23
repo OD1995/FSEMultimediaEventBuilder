@@ -26,6 +26,7 @@ def main(inputDict: dict) -> str:
     sport = inputDict['sport']
     event = inputDict['event']
     samplingProportion = inputDict['samplingProportion']
+    audioTranscript = inputDict['audioTranscript']
     logging.info(f"videoList len: {len(videoList)}")
     logging.info(f"sport: {sport}")
     logging.info(f"event: {event}")
@@ -38,7 +39,8 @@ def main(inputDict: dict) -> str:
         'Sport',
         'EndpointID',
         'MultipleVideoEvent',
-        'SamplingProportion'
+        'SamplingProportion',
+        'AudioTranscript'
     ]
     columnListString = ",".join([
         f"[{c}]"
@@ -52,7 +54,8 @@ def main(inputDict: dict) -> str:
             f"'{sport}'",
             "NULL",
             "1", # equivalent of True
-            str(samplingProportion)
+            str(samplingProportion),
+            "1" if audioTranscript else "0"
         ])
         for vidURL in videoList
     ]

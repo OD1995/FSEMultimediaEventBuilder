@@ -15,7 +15,8 @@ async def main(
         'query',
         'sport',
         'event',
-        'sampling_proportion'
+        'sampling_proportion',
+        'audio_transcript'
     ]
     bonus = [
         # 'endpointURL',

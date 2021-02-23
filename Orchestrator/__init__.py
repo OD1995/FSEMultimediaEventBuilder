@@ -41,6 +41,7 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
     sport = inputs['sport']
     event = inputs['event']
     samplingProportion = inputs['sampling_proportion']
+    audioTranscript = inputs['audio_transcript']
 
     ## Create a row in EventBuilderProgress
     _uuid_ = str(context.new_uuid())
@@ -94,7 +95,6 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
                 'imageList' : imageList,
                 'sport' : sport,
                 'event' : event,
-                'samplingProportion' : samplingProportion,
                 'ebs_stages' : ebs_stages,
                 'stage_count' : stage_count,
                 'uuid' : _uuid_
@@ -113,6 +113,8 @@ def orchestrator_function(context: df.DurableOrchestrationContext):
                 'videoList' : videoList,
                 'sport' : sport,
                 'event' : event,
+                'samplingProportion' : samplingProportion,
+                'audioTranscript' : audioTranscript,
                 'ebs_stages' : ebs_stages,
                 'stage_count' : stage_count,
                 'uuid' : _uuid_
