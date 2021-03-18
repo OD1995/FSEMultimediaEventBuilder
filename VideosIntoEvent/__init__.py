@@ -46,32 +46,41 @@ def main(inputDict: dict) -> str:
         f"[{c}]"
         for c in columnList
     ])
-    ## Values
-    valuesList = [
-        ",".join([
-            f"'{get_file_name_from_URL(vidURL)}'",
-            f"'{event}'",
-            f"'{sport}'",
-            "NULL",
-            "1", # equivalent of True
-            str(samplingProportion),
-            "1" if audioTranscript else "0"
-        ])
-        for vidURL in videoList
+    ## Split `videoList` into blocks of 900 (1000 is the limit)
+    n = 900
+    videoListBlocks = [
+        videoList[i * n:(i + 1) * n]
+        for i in range((len(videoList) + n - 1) // n )
     ]
-    valuesListString = "),(".join(valuesList)
-    ## Build query
-    insertQuery = f"""
-    INSERT INTO AzureBlobVideos ({columnListString})
-    VALUES ({valuesListString})
-    """
-    logging.info(f"AzureBlobVideos query: {insertQuery}")
-    ## Run query
-    run_sql_command(
-        sqlQuery=insertQuery,
-        database="AzureCognitive"
-    )
-    logging.info("query run")
+
+    for I,vlb in enumerate(videoListBlocks):
+        logging.info(f"query {I+1} of {len(videoListBlocks)}")
+        ## Values
+        valuesList = [
+            ",".join([
+                f"'{get_file_name_from_URL(vidURL)}'",
+                f"'{event}'",
+                f"'{sport}'",
+                "NULL",
+                "1", # equivalent of True
+                str(samplingProportion),
+                "1" if audioTranscript else "0"
+            ])
+            for vidURL in vlb
+        ]
+        valuesListString = "),(".join(valuesList)
+        ## Build query
+        insertQuery = f"""
+        INSERT INTO AzureBlobVideos ({columnListString})
+        VALUES ({valuesListString})
+        """
+        logging.info(f"AzureBlobVideos query: {insertQuery}")
+        ## Run query
+        run_sql_command(
+            sqlQuery=insertQuery,
+            database="AzureCognitive"
+        )
+        logging.info("query run")
 
     
     ## # Upload videos to us-office
